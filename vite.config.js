@@ -1,8 +1,9 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// 👇 cambiá "AdminAlamcenFront" por el nombre EXACTO de tu repo en GitHub
+// Si está en producción (GitHub Pages), usa la carpeta del repo
+// Si está en desarrollo (local), base es "/"
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === "production" ? "/AdminAlamcenFront/" : "/"
-})
+  base: process.env.NODE_ENV === "production" ? "/AdminAlamcenFront/" : "/",
+});
