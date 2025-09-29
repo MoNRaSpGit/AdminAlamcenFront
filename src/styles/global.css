@@ -1,0 +1,94 @@
+/* Reset general */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fondo global */
+body {
+  background-color: #121212; /* Fondo negro */
+  color: #f8f9fa;           /* Texto claro */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+}
+
+/* Links */
+a {
+  color: #0d6efd;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Navbar */
+.navbar {
+  margin-bottom: 20px;
+}
+
+/* Contenedor principal */
+.container {
+  background-color: #1e1e1e; /* gris oscuro */
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* Títulos */
+h1, h2, h3, h4 {
+  color: #0d6efd; /* Azul Bootstrap */
+  margin-bottom: 1rem;
+}
+
+/* Formularios */
+input, .form-control {
+  background-color: #1e1e1e !important;
+  color: #f8f9fa !important;
+  border: 1px solid #444 !important;
+}
+
+input::placeholder {
+  color: #aaa !important;
+}
+
+/* Tablas */
+.table {
+  margin-top: 15px;
+}
+
+.table-dark th,
+.table-dark td {
+  vertical-align: middle;
+}
+
+.table thead th {
+  text-align: center;
+}
+
+/* Botones */
+.btn {
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+.btn-primary {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+}
+
+.btn-warning {
+  background-color: #ffc107 !important;
+  border-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+.btn-danger {
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
+
+.btn-success {
+  background-color: #198754 !important;
+  border-color: #198754 !important;
+}
