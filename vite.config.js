@@ -1,7 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+// Detectamos si estamos en producción (GitHub Pages) o en desarrollo (local)
+export default defineConfig(({ command }) => ({
   plugins: [react()],
-  base: "/AdminAlamcenFront/", // 👈 nombre EXACTO del repo
-});
+  base: command === "build" ? "/AdminAlamcenFront/" : "/", // ✅ dinámico
+}));

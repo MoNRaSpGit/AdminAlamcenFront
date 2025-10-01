@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 function NoActualizados() {
   const [productos, setProductos] = useState([]);
+  const [search, setSearch] = useState("");
   const [editId, setEditId] = useState(null);
   const [editPrice, setEditPrice] = useState("");
   const [editName, setEditName] = useState("");
@@ -38,21 +39,21 @@ function NoActualizados() {
     if (res.ok) {
       const updated = await res.json();
 
-      // 🔍 Re-evaluar si todavía cumple las condiciones de "No actualizado"
+      // 🔹 Chequear si el producto sigue cumpliendo la condición
       const stillNotUpdated =
         updated.price === 999 ||
         updated.price === 0 ||
-        updated.name.toUpperCase().includes("(CH)");
+        updated.name.toLowerCase().includes("(ch)");
 
       if (stillNotUpdated) {
-        // 👉 lo dejamos en la lista, pero actualizado
+        // actualizar dentro de la lista
         setProductos((prev) =>
           prev.map((p) =>
             p.id === id ? { ...p, price: updated.price, name: updated.name } : p
           )
         );
       } else {
-        // 🚀 ya no cumple -> lo eliminamos de la lista
+        // 🚀 ya no cumple -> lo eliminamos de la tabla local
         setProductos((prev) => prev.filter((p) => p.id !== id));
       }
 
@@ -62,15 +63,28 @@ function NoActualizados() {
     }
   };
 
+  // 🔍 Filtrado + Orden alfabético
+  const productosFiltrados = productos
+    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <div className="p-4 rounded bg-dark text-light">
-      {/* 🔹 Contador */}
       <h2 className="mb-4 text-warning">
         🚫 Productos No Actualizados{" "}
-        <span className="badge bg-info text-dark">
-          {productos.length}
+        <span className="badge bg-secondary">
+          {productosFiltrados.length}
         </span>
       </h2>
+
+      {/* 🔎 Buscador */}
+      <input
+        type="text"
+        className="form-control mb-3 bg-secondary text-light"
+        placeholder="Buscar producto..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
       <table className="table table-dark table-striped table-bordered table-hover">
         <thead className="table-danger text-dark">
@@ -83,8 +97,8 @@ function NoActualizados() {
           </tr>
         </thead>
         <tbody>
-          {productos.length > 0 ? (
-            productos.map((p) => (
+          {productosFiltrados.length > 0 ? (
+            productosFiltrados.map((p) => (
               <tr key={p.id}>
                 <td>{p.id}</td>
                 <td>
