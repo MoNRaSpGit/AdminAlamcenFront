@@ -33,7 +33,12 @@ function Navbar() {
                 📷 Escáner
               </Link>
             </li>
-
+            {/* 🆕 Nueva opción */}
+            <li className="nav-item">
+              <Link className="nav-link text-dark" to="/productos-proveedores">
+                🏷️ Asignar Proveedores
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

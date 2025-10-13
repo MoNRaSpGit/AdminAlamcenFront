@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 function NoActualizados() {
   const [productos, setProductos] = useState([]);
@@ -6,6 +6,9 @@ function NoActualizados() {
   const [editId, setEditId] = useState(null);
   const [editPrice, setEditPrice] = useState("");
   const [editName, setEditName] = useState("");
+  const [editBarcode, setEditBarcode] = useState("");
+
+  const barcodeInputRef = useRef(null); // 🆕 referencia para el input de código
 
   useEffect(() => {
     fetch("https://backadminalmacen.onrender.com/api/products/not-updated")
@@ -14,16 +17,26 @@ function NoActualizados() {
       .catch((err) => console.error("❌ Error:", err));
   }, []);
 
+  // Cuando entramos en modo edición
   const startEdit = (product) => {
     setEditId(product.id);
     setEditPrice(product.price);
     setEditName(product.name);
+    setEditBarcode(product.barcode || "");
+
+    // 🕒 Esperar un pequeño delay para asegurar que el input existe en el DOM
+    setTimeout(() => {
+      if (barcodeInputRef.current) {
+        barcodeInputRef.current.focus(); // enfocar automáticamente
+      }
+    }, 100);
   };
 
   const cancelEdit = () => {
     setEditId(null);
     setEditPrice("");
     setEditName("");
+    setEditBarcode("");
   };
 
   const saveEdit = async (id) => {
@@ -32,7 +45,11 @@ function NoActualizados() {
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ price: editPrice, name: editName }),
+        body: JSON.stringify({
+          price: editPrice,
+          name: editName,
+          barcode: editBarcode || null, // 🆕 enviamos también el código
+        }),
       }
     );
 
@@ -43,13 +60,17 @@ function NoActualizados() {
       const stillNotUpdated =
         updated.price === 999 ||
         updated.price === 0 ||
-        updated.name.toLowerCase().includes("(ch)");
+        !updated.barcode ||
+        updated.name.toLowerCase().includes("(ch)") ||
+        updated.name.includes("?");
 
       if (stillNotUpdated) {
         // actualizar dentro de la lista
         setProductos((prev) =>
           prev.map((p) =>
-            p.id === id ? { ...p, price: updated.price, name: updated.name } : p
+            p.id === id
+              ? { ...p, price: updated.price, name: updated.name, barcode: updated.barcode }
+              : p
           )
         );
       } else {
@@ -72,9 +93,7 @@ function NoActualizados() {
     <div className="p-4 rounded bg-dark text-light">
       <h2 className="mb-4 text-warning">
         🚫 Productos No Actualizados{" "}
-        <span className="badge bg-secondary">
-          {productosFiltrados.length}
-        </span>
+        <span className="badge bg-secondary">{productosFiltrados.length}</span>
       </h2>
 
       {/* 🔎 Buscador */}
@@ -125,7 +144,20 @@ function NoActualizados() {
                     `$${p.price}`
                   )}
                 </td>
-                <td>{p.barcode || "—"}</td>
+                <td>
+                  {editId === p.id ? (
+                    <input
+                      type="text"
+                      ref={barcodeInputRef} // 🆕 referencia para enfocar
+                      className="form-control bg-secondary text-light"
+                      placeholder="Código de barra"
+                      value={editBarcode}
+                      onChange={(e) => setEditBarcode(e.target.value)}
+                    />
+                  ) : (
+                    p.barcode || "—"
+                  )}
+                </td>
                 <td>
                   {editId === p.id ? (
                     <>

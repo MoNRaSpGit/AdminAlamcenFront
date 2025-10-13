@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar";
 import Productos from "./pages/Productos";
 import NoActualizados from "./pages/NoActualizados";
 import Escaner from "./pages/Escaner";
-
+import ProductosProveedor from "./pages/ProductosProveedor"; // 👈 importar la nueva página
 
 function App() {
   return (
@@ -16,10 +16,10 @@ function App() {
         <Routes>
           <Route path="/" element={<h1>Bienvenido a AdminAlmacén 🚀</h1>} />
           <Route path="/productos" element={<Productos />} />
-          <Route path="/no-actualizados" element={<NoActualizados />} />   {/* 👈 nuevo */}
+          <Route path="/no-actualizados" element={<NoActualizados />} />
           <Route path="/escaner" element={<Escaner />} />
-
-          
+          {/* 🆕 Ruta nueva */}
+          <Route path="/productos-proveedores" element={<ProductosProveedor />} />
         </Routes>
       </div>
     </>
