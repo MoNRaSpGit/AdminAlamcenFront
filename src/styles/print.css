@@ -1,0 +1,148 @@
+/* ===============================
+   VISTA EN PANTALLA
+   =============================== */
+.print-container {
+  text-align: center;
+  margin-top: 40px;
+  font-family: "Courier New", monospace;
+}
+
+.ticket {
+  width: 80mm;
+  margin: 0 auto;
+  padding: 10px;
+  border: 1px dashed #999;
+  background: #fff;
+  color: #000;
+}
+
+/* CABECERA */
+.ticket-header {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.ticket-sub {
+  text-align: center;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* PRODUCTOS */
+.ticket-body {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.ticket-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-family: "Courier New", monospace;
+  margin: 3px 0;
+  white-space: nowrap;
+}
+
+.ticket-item .nombre {
+  text-align: left;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 4px;
+}
+
+.ticket-item .separador {
+  flex: none;
+  white-space: nowrap;
+  margin: 0 4px;
+}
+
+.ticket-item .precio {
+  text-align: right;
+  flex-shrink: 0;
+  width: 50px;
+}
+
+/* TOTAL */
+.ticket-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+/* PIE */
+.ticket-footer {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+hr {
+  border: none;
+  border-top: 1px dashed #000;
+  margin: 6px 0;
+}
+
+/* ===============================
+   MODO IMPRESIÓN
+   =============================== */
+@media print {
+  /* Reset */
+  * {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    background: none !important;
+    color: #000 !important;
+    font-family: "Courier New", monospace !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* Ocultar navbar, botones, textos extra */
+  .navbar,
+  .no-print,
+  .titulo-pagina,
+  .texto-descripcion {
+    display: none !important;
+  }
+
+  /* Ticket centrado */
+  .ticket {
+    width: 80mm !important;
+    margin: 0 auto !important;
+    border: none !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+  }
+
+  .ticket-header,
+  .ticket-sub,
+  .ticket-footer {
+    text-align: center !important;
+  }
+
+  hr {
+    border-top: 1px dashed #000 !important;
+  }
+
+  .ticket-item {
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}

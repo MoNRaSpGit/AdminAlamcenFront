@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { printTestTicket } from "../services/printService";
+
 
 export default function Escaner({ onProductoEncontrado }) {
   const [codigo, setCodigo] = useState("");
@@ -54,6 +56,7 @@ export default function Escaner({ onProductoEncontrado }) {
       return;
     }
 
+
     const res = await fetch("https://backadminalmacen.onrender.com/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,6 +82,31 @@ export default function Escaner({ onProductoEncontrado }) {
     setBarcodePendiente(null);
     resetInput();
   };
+
+
+  const handlePagar = async () => {
+    if (carrito.length === 0) {
+      alert("⚠️ No hay productos en el carrito.");
+      return;
+    }
+
+    // Convertimos el carrito en formato compatible con printTestTicket
+    const items = carrito.map((p) => ({
+      nombre: p.name,
+      precio: `$${p.price}`,
+    }));
+
+    try {
+      await printTestTicket(null, items);
+      alert("🖨️ Ticket impreso correctamente.");
+      setCarrito([]); // limpia el carrito
+      setProductoActual(null);
+    } catch (err) {
+      alert("❌ Error al imprimir el ticket.");
+      console.error(err);
+    }
+  };
+
 
   const cancelarNuevo = () => {
     setNuevoNombre("");
@@ -159,6 +187,17 @@ export default function Escaner({ onProductoEncontrado }) {
           </li>
         ))}
       </ul>
+      {carrito.length > 0 && (
+        <div className="text-end mt-3">
+          <button
+            className="btn btn-success btn-lg"
+            onClick={handlePagar}
+          >
+            💰 Pagar / Imprimir Ticket
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -1,313 +1,170 @@
 import { useEffect, useState, useRef } from "react";
+import ProductoForm from "../views/ProductoForm";
+import ProductosTable from "../views/ProductosTable";
 
-function Productos() {
+export default function Productos() {
   const [productos, setProductos] = useState([]);
-  const [proveedores, setProveedores] = useState([]); 
+  const [proveedores, setProveedores] = useState([]);
+  const [proveedorSeleccionado, setProveedorSeleccionado] = useState("");
   const [search, setSearch] = useState("");
+
   const [editId, setEditId] = useState(null);
-  const [editPrice, setEditPrice] = useState("");
   const [editName, setEditName] = useState("");
+  const [editPriceOriginal, setEditPriceOriginal] = useState("");
+  const [editProveedor, setEditProveedor] = useState(""); // 🆕 proveedor editable
 
-  // 🆕 Campos para nuevo producto
-  const [newName, setNewName] = useState("");
-  const [newPrice, setNewPrice] = useState("");       
-  const [newPriceInput, setNewPriceInput] = useState(""); 
-  const [newProveedor, setNewProveedor] = useState("");   
-  const [divideBy, setDivideBy] = useState("");   
-
-  // 🆕 Porcentaje dinámico
-  const [markup, setMarkup] = useState(30);
-
+  const API = "https://backadminalmacen.onrender.com/api";
   const searchInputRef = useRef(null);
 
-  // cargar productos y proveedores
+  // Cargar productos y proveedores
   useEffect(() => {
-    fetch("https://backadminalmacen.onrender.com/api/products")
-      .then((res) => res.json())
-      .then((data) => setProductos(data))
-      .catch((err) => console.error("❌ Error productos:", err));
-
-    fetch("https://backadminalmacen.onrender.com/api/proveedores")
-      .then((res) => res.json())
-      .then((data) => setProveedores(data))
-      .catch((err) => console.error("❌ Error proveedores:", err));
+    Promise.all([
+      fetch(`${API}/products`).then((res) => res.json()),
+      fetch(`${API}/proveedores`).then((res) => res.json()),
+    ])
+      .then(([prods, provs]) => {
+        setProductos(prods);
+        setProveedores(provs);
+      })
+      .catch((err) => console.error("❌ Error inicial:", err));
   }, []);
 
-  // recalcular precio cuando cambia input, divisor o markup
-  useEffect(() => {
-    const raw = parseFloat(newPriceInput);
-    if (isNaN(raw) || raw <= 0) {
-      setNewPrice("");
-      return;
-    }
-    const div = parseFloat(divideBy);
-    const base = (!isNaN(div) && div > 0) ? raw / div : raw;
-    const final = base * (1 + markup / 100);
-    setNewPrice(final.toFixed(2));
-  }, [newPriceInput, divideBy, markup]);
-
-  const startEdit = (product) => {
-    setEditId(product.id);
-    setEditPrice(product.price);
-    setEditName(product.name);
+  // === 🧠 Funciones base ===
+  const startEdit = (p) => {
+    setEditId(p.id);
+    setEditName(p.name);
+    setEditPriceOriginal(p.priceOriginal || "");
+    setEditProveedor(p.proveedor_id || ""); // 🆕 preseleccionar proveedor
   };
 
   const cancelEdit = () => {
     setEditId(null);
-    setEditPrice("");
     setEditName("");
+    setEditPriceOriginal("");
+    setEditProveedor("");
   };
 
   const saveEdit = async (id) => {
-    const res = await fetch(
-      `https://backadminalmacen.onrender.com/api/products/${id}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ price: editPrice, name: editName }),
-      }
+  try {
+    const producto = productos.find((p) => p.id === id);
+
+    // 🧮 Calculamos nuevo precio final (30% margen)
+    const base = parseFloat(editPriceOriginal || producto.priceOriginal || 0);
+    const newPrice = (base * 1.3).toFixed(2);
+
+    // 🧾 Armamos el body que se enviará al backend
+    const body = {
+      name: editName || producto.name,
+      priceOriginal: base,
+      price: parseFloat(newPrice),
+      proveedor_id: editProveedor
+        ? Number(editProveedor)
+        : producto.proveedor_id || null, // ✅ Enviamos proveedor actual o nuevo
+    };
+
+    console.log("➡️ Enviando datos al backend:", body);
+
+    const res = await fetch(`${API}/products/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) throw new Error("Error al guardar cambios");
+
+    const updated = await res.json();
+
+    // 🧠 Actualizamos en el estado local
+    setProductos((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...updated } : p))
     );
 
-    if (res.ok) {
-      const updated = await res.json();
-      setProductos((prev) =>
-        prev.map((p) =>
-          p.id === id ? { ...p, price: updated.price, name: updated.name } : p
-        )
-      );
-      cancelEdit();
-    } else {
-      alert("❌ Error al actualizar producto");
-    }
-  };
+    cancelEdit();
+  } catch (err) {
+    console.error("❌ Error actualizando producto:", err);
+    alert("No se pudo guardar el cambio");
+  }
+};
 
-  // Guardar producto + asignarlo al proveedor
-  const addNewProduct = async () => {
-    if (!newName || !newProveedor) {
-      alert("⚠️ Falta nombre o proveedor");
-      return;
-    }
 
-    // recalcular acá también para asegurar consistencia
-    const raw = parseFloat(newPriceInput) || 0;
-    const div = parseFloat(divideBy) || 0;
-    const base = div > 0 ? raw / div : raw;
-    const finalNumber = base > 0 ? base * (1 + markup / 100) : 0;
-    const finalRounded = finalNumber ? Number(finalNumber.toFixed(2)) : null;
-
+  const marcarComoChequeado = async (id) => {
     try {
-      // 1️⃣ insertar producto
-      const res = await fetch(
-        "https://backadminalmacen.onrender.com/api/products",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: newName,
-            price: finalRounded,
-          }),
-        }
+      const res = await fetch(`${API}/products/${id}/check`, { method: "PUT" });
+      if (!res.ok) throw new Error();
+      const fecha = new Date().toISOString();
+      setProductos((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, last_checked_at: fecha } : p))
       );
-
-      if (!res.ok) throw new Error("Error guardando producto");
-
-      const saved = await res.json();
-
-      // 2️⃣ asignar proveedor
-      const res2 = await fetch(
-        "https://backadminalmacen.onrender.com/api/proveedores/asignar",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            proveedorId: newProveedor,
-            productos: [saved.id],
-          }),
-        }
-      );
-
-      if (!res2.ok) throw new Error("Error asignando proveedor");
-
-      // actualizar lista local
-      setProductos((prev) => [...prev, saved]);
-
-      // limpiar form (menos proveedor y markup)
-      setNewName("");
-      setNewPriceInput("");
-      setDivideBy("");
-      setNewPrice("");
-
-      if (searchInputRef.current) {
-        searchInputRef.current.focus();
-      }
-
-    } catch (err) {
-      console.error("❌", err);
-      alert("Error al guardar producto con proveedor");
+    } catch {
+      alert("No se pudo marcar el producto como chequeado");
     }
   };
 
-  const productosFiltrados = productos.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const agregarProducto = (nuevo) => {
+    setProductos((prev) => [...prev, nuevo]);
+  };
 
+  // Filtro
+  const productosFiltrados = productos.filter((p) => {
+    const coincideTexto = p.name.toLowerCase().includes(search.toLowerCase());
+    const coincideProveedor =
+      !proveedorSeleccionado ||
+      proveedorSeleccionado === "todos" ||
+      Number(p.proveedor_id) === Number(proveedorSeleccionado);
+    return coincideTexto && coincideProveedor;
+  });
+
+  // === 🧩 UI ===
   return (
     <div className="p-4 rounded bg-dark text-light">
-      <h2 className="mb-4 text-info">📦 Listado de Productos</h2>
+      <h2 className="mb-4 text-info">📦 Revisión y Carga de Productos</h2>
 
-      {/* 🔎 Buscador */}
-      <input
-        type="text"
-        className="form-control mb-3 bg-secondary text-light"
-        placeholder="Buscar producto..."
-        value={search}
-        ref={searchInputRef}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-
-      {/* Botón para cambiar markup */}
-      <button
-        className={`btn ${markup === 30 ? "btn-info" : "btn-danger"} btn-lg mb-3`}
-        onClick={() => setMarkup(markup === 30 ? 52 : 30)}
-      >
-        🔄 Margen actual: {markup}%
-      </button>
-
-      {/* ⚠️ Aviso */}
-      <div className="alert alert-warning text-dark">
-        ⚠️ Che, acordate que al precio se le suma automáticamente un {markup}%.
-      </div>
-
-      {/* 🆕 Formulario para producto nuevo */}
-      <div className="card bg-secondary text-light mb-4 p-3">
-        <h4>➕ Agregar Producto</h4>
+      {/* 🔍 Buscador y filtro */}
+      <div className="d-flex gap-3 mb-3">
         <input
           type="text"
-          className="form-control mb-2"
-          placeholder="Nombre del producto"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-        />
-        <input
-          type="number"
-          className="form-control mb-2"
-          placeholder="Precio (opcional)"
-          value={newPriceInput}
-          onChange={(e) => setNewPriceInput(e.target.value)}
-        />
-        <input
-          type="number"
-          className="form-control mb-2"
-          placeholder="Dividir por (opcional)"
-          value={divideBy}
-          onChange={(e) => setDivideBy(e.target.value)}
+          className="form-control bg-secondary text-light"
+          placeholder="Buscar producto..."
+          value={search}
+          ref={searchInputRef}
+          onChange={(e) => setSearch(e.target.value)}
         />
 
-        {/* Mostrar resultado */}
-        {newPrice && (
-          <div className="text-info">
-            {parseFloat(divideBy) > 0 ? (
-              <>
-                <p>💰 Precio ingresado: <strong>${Number(newPriceInput || 0).toFixed(2)}</strong></p>
-                <p>➗ Dividido entre {divideBy}: <strong>${(Number(newPriceInput || 0) / Number(divideBy)).toFixed(2)}</strong></p>
-                <p>➕ Con {markup}%: <strong>${newPrice}</strong></p>
-              </>
-            ) : (
-              <p>💰 Precio final con {markup}%: <strong>${newPrice}</strong></p>
-            )}
-          </div>
-        )}
-
-        {/* Select de proveedores */}
         <select
-          className="form-control mb-2"
-          value={newProveedor}
-          onChange={(e) => setNewProveedor(e.target.value)}
+          className="form-select bg-secondary text-light"
+          value={proveedorSeleccionado}
+          onChange={(e) => setProveedorSeleccionado(e.target.value)}
         >
-          <option value="">-- Seleccionar proveedor --</option>
+          <option value="todos">Todos los proveedores</option>
           {proveedores.map((prov) => (
             <option key={prov.id} value={prov.id}>
               {prov.nombre}
             </option>
           ))}
         </select>
-
-        <button className="btn btn-success" onClick={addNewProduct}>
-          Guardar Producto
-        </button>
       </div>
 
-      {/* Tabla de productos */}
-      <table className="table table-dark table-striped table-bordered table-hover">
-        <thead className="table-primary text-dark">
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Precio</th>
-            <th>Código de Barra</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productosFiltrados.map((p) => (
-            <tr key={p.id}>
-              <td>{p.id}</td>
-              <td>
-                {editId === p.id ? (
-                  <input
-                    type="text"
-                    className="form-control bg-secondary text-light"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                  />
-                ) : (
-                  p.name
-                )}
-              </td>
-              <td>
-                {editId === p.id ? (
-                  <input
-                    type="number"
-                    className="form-control bg-secondary text-light"
-                    value={editPrice}
-                    onChange={(e) => setEditPrice(e.target.value)}
-                  />
-                ) : (
-                  `$${p.price}`
-                )}
-              </td>
-              <td>{p.barcode ? p.barcode : "—"}</td>
-              <td>
-                {editId === p.id ? (
-                  <>
-                    <button
-                      onClick={() => saveEdit(p.id)}
-                      className="btn btn-success btn-sm me-2"
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="btn btn-secondary btn-sm"
-                    >
-                      Cancelar
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => startEdit(p)}
-                    className="btn btn-warning btn-sm"
-                  >
-                    Editar
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* ➕ Nuevo producto */}
+      <ProductoForm
+        API={API}
+        proveedores={proveedores}
+        onProductoAgregado={agregarProducto}
+      />
+
+      {/* 📋 Tabla */}
+      <ProductosTable
+        productos={productosFiltrados}
+        editId={editId}
+        editName={editName}
+        editPriceOriginal={editPriceOriginal}
+        editProveedor={editProveedor} // 🆕
+        setEditProveedor={setEditProveedor} // 🆕
+        proveedores={proveedores} // 🆕
+        startEdit={startEdit}
+        cancelEdit={cancelEdit}
+        saveEdit={saveEdit}
+        marcarComoChequeado={marcarComoChequeado}
+      />
     </div>
   );
 }
-
-export default Productos;

@@ -1,43 +1,65 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-info">
       <div className="container-fluid">
+        {/* 🏪 Logo / título */}
         <Link className="navbar-brand fw-bold text-dark" to="/">
           🏪 AdminAlmacén
         </Link>
+
+        {/* Botón hamburguesa */}
         <button
           className="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
+        {/* Contenido del menú */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto">
             <li className="nav-item">
-              <Link className="nav-link text-dark" to="/productos">
+              <NavLink className="nav-link text-dark" to="/productos">
                 📦 Productos
-              </Link>
+              </NavLink>
             </li>
+
             <li className="nav-item">
-              <Link className="nav-link text-dark" to="/no-actualizados">
+              <NavLink className="nav-link text-dark" to="/no-actualizados">
                 ⚠️ No Actualizados
-              </Link>
+              </NavLink>
             </li>
+
             <li className="nav-item">
-              <Link className="nav-link text-dark" to="/escaner">
+              <NavLink className="nav-link text-dark" to="/escaner">
                 📷 Escáner
-              </Link>
+              </NavLink>
             </li>
-            {/* 🆕 Nueva opción */}
+
             <li className="nav-item">
-              <Link className="nav-link text-dark" to="/productos-proveedores">
+              <NavLink className="nav-link text-dark" to="/productos-proveedores">
                 🏷️ Asignar Proveedores
-              </Link>
+              </NavLink>
+            </li>
+
+            <li className="nav-item">
+              <NavLink className="nav-link text-dark" to="/productos-proveedor">
+                🏭 Productos por Proveedor
+              </NavLink>
+            </li>
+
+            {/* 🆕 Nueva opción: impresión */}
+            <li className="nav-item">
+              <NavLink className="nav-link text-dark" to="/imprimir-qz">
+                🖨️ QZ Directo
+              </NavLink>
             </li>
           </ul>
         </div>

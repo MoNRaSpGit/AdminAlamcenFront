@@ -4,6 +4,18 @@ import Productos from "./pages/Productos";
 import NoActualizados from "./pages/NoActualizados";
 import Escaner from "./pages/Escaner";
 import ProductosProveedor from "./pages/ProductosProveedor"; // 👈 importar la nueva página
+import ProductosPorProveedor from "./pages/ProductosPorProveedor";
+import ImprimirPrueba from "./pages/ImprimirPrueba";
+import ImprimirQZ from "./pages/ImprimirQZ";
+
+
+
+
+
+
+
+
+
 
 function App() {
   return (
@@ -20,6 +32,9 @@ function App() {
           <Route path="/escaner" element={<Escaner />} />
           {/* 🆕 Ruta nueva */}
           <Route path="/productos-proveedores" element={<ProductosProveedor />} />
+          <Route path="/productos-proveedor" element={<ProductosPorProveedor />} />
+          <Route path="/imprimir-prueba" element={<ImprimirPrueba />} />
+          <Route path="/imprimir-qz" element={<ImprimirQZ />} />
         </Routes>
       </div>
     </>

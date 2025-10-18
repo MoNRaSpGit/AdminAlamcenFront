@@ -7,8 +7,7 @@ function NoActualizados() {
   const [editPrice, setEditPrice] = useState("");
   const [editName, setEditName] = useState("");
   const [editBarcode, setEditBarcode] = useState("");
-
-  const barcodeInputRef = useRef(null); // 🆕 referencia para el input de código
+  const barcodeInputRef = useRef(null);
 
   useEffect(() => {
     fetch("https://backadminalmacen.onrender.com/api/products/not-updated")
@@ -17,19 +16,12 @@ function NoActualizados() {
       .catch((err) => console.error("❌ Error:", err));
   }, []);
 
-  // Cuando entramos en modo edición
   const startEdit = (product) => {
     setEditId(product.id);
     setEditPrice(product.price);
     setEditName(product.name);
     setEditBarcode(product.barcode || "");
-
-    // 🕒 Esperar un pequeño delay para asegurar que el input existe en el DOM
-    setTimeout(() => {
-      if (barcodeInputRef.current) {
-        barcodeInputRef.current.focus(); // enfocar automáticamente
-      }
-    }, 100);
+    setTimeout(() => barcodeInputRef.current?.focus(), 100);
   };
 
   const cancelEdit = () => {
@@ -48,15 +40,13 @@ function NoActualizados() {
         body: JSON.stringify({
           price: editPrice,
           name: editName,
-          barcode: editBarcode || null, // 🆕 enviamos también el código
+          barcode: editBarcode || null,
         }),
       }
     );
 
     if (res.ok) {
       const updated = await res.json();
-
-      // 🔹 Chequear si el producto sigue cumpliendo la condición
       const stillNotUpdated =
         updated.price === 999 ||
         updated.price === 0 ||
@@ -65,16 +55,19 @@ function NoActualizados() {
         updated.name.includes("?");
 
       if (stillNotUpdated) {
-        // actualizar dentro de la lista
         setProductos((prev) =>
           prev.map((p) =>
             p.id === id
-              ? { ...p, price: updated.price, name: updated.name, barcode: updated.barcode }
+              ? {
+                  ...p,
+                  price: updated.price,
+                  name: updated.name,
+                  barcode: updated.barcode,
+                }
               : p
           )
         );
       } else {
-        // 🚀 ya no cumple -> lo eliminamos de la tabla local
         setProductos((prev) => prev.filter((p) => p.id !== id));
       }
 
@@ -84,7 +77,11 @@ function NoActualizados() {
     }
   };
 
-  // 🔍 Filtrado + Orden alfabético
+  // 🆕 Quitar temporalmente (solo front)
+  const quitarTemporalmente = (id) => {
+    setProductos((prev) => prev.filter((p) => p.id !== id));
+  };
+
   const productosFiltrados = productos
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -96,7 +93,6 @@ function NoActualizados() {
         <span className="badge bg-secondary">{productosFiltrados.length}</span>
       </h2>
 
-      {/* 🔎 Buscador */}
       <input
         type="text"
         className="form-control mb-3 bg-secondary text-light"
@@ -148,7 +144,7 @@ function NoActualizados() {
                   {editId === p.id ? (
                     <input
                       type="text"
-                      ref={barcodeInputRef} // 🆕 referencia para enfocar
+                      ref={barcodeInputRef}
                       className="form-control bg-secondary text-light"
                       placeholder="Código de barra"
                       value={editBarcode}
@@ -169,18 +165,32 @@ function NoActualizados() {
                       </button>
                       <button
                         onClick={cancelEdit}
-                        className="btn btn-secondary btn-sm"
+                        className="btn btn-secondary btn-sm me-2"
                       >
                         Cancelar
                       </button>
+                      <button
+                        onClick={() => quitarTemporalmente(p.id)}
+                        className="btn btn-outline-danger btn-sm"
+                      >
+                        Quitar
+                      </button>
                     </>
                   ) : (
-                    <button
-                      onClick={() => startEdit(p)}
-                      className="btn btn-warning btn-sm"
-                    >
-                      Editar
-                    </button>
+                    <>
+                      <button
+                        onClick={() => startEdit(p)}
+                        className="btn btn-warning btn-sm me-2"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => quitarTemporalmente(p.id)}
+                        className="btn btn-outline-danger btn-sm"
+                      >
+                        Quitar
+                      </button>
+                    </>
                   )}
                 </td>
               </tr>
