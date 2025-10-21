@@ -7,6 +7,11 @@ import ProductosProveedor from "./pages/ProductosProveedor"; // 👈 importar la
 import ProductosPorProveedor from "./pages/ProductosPorProveedor";
 import ImprimirPrueba from "./pages/ImprimirPrueba";
 import ImprimirQZ from "./pages/ImprimirQZ";
+import TestRawBT from "./pages/TestRawBT";
+
+
+
+
 
 
 
@@ -35,6 +40,7 @@ function App() {
           <Route path="/productos-proveedor" element={<ProductosPorProveedor />} />
           <Route path="/imprimir-prueba" element={<ImprimirPrueba />} />
           <Route path="/imprimir-qz" element={<ImprimirQZ />} />
+          <Route path="/test-raw" element={<TestRawBT />} />
         </Routes>
       </div>
     </>

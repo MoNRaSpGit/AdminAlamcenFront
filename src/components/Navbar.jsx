@@ -61,6 +61,11 @@ function Navbar() {
                 🖨️ QZ Directo
               </NavLink>
             </li>
+            <li className="nav-item">
+              <NavLink className="nav-link text-dark" to="/test-raw">
+                📡 RawBT Wi-Fi
+              </NavLink>
+            </li>
           </ul>
         </div>
       </div>
