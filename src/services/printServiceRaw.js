@@ -1,36 +1,20 @@
-// printServiceRaw.js
+// src/services/printServiceRaw.jsx
 export async function printTestTicketRaw(items) {
-  try {
-    // Dirección e IP de tu impresora Xprinter
-    const ip = "192.168.1.123";
-    const port = 9100;
+  // Armamos el texto del ticket
+  let ticket = "*** ALMACÉN PRO ***\n";
+  ticket += "-----------------------------\n";
+  items.forEach((item) => {
+    ticket += `${item.nombre.padEnd(20)} ${item.precio}\n`;
+  });
+  ticket += "-----------------------------\n";
+  ticket += "¡Gracias por su compra!\n\n\n";
 
-    // Convertimos el ticket en texto ESC/POS simple
-    let ticket = "\x1B\x40"; // Reset ESC/POS
-    ticket += "     *** ALMACÉN PRO ***\n";
-    ticket += "-----------------------------\n";
-    items.forEach((item) => {
-      ticket += `${item.nombre.padEnd(20)} ${item.precio}\n`;
-    });
-    ticket += "-----------------------------\n";
-    ticket += "¡Gracias por su compra!\n\n\n";
-    ticket += "\x1D\x56\x42\x00"; // Corte parcial
+  // Codificamos el texto en Base64 (formato que RawBT entiende)
+  const encoded = btoa(unescape(encodeURIComponent(ticket)));
 
-    // Enviamos los bytes a la impresora por socket TCP
-    const socket = new WebSocket(`ws://${ip}:${port}`);
-    socket.binaryType = "arraybuffer";
+  // Construimos la URL tipo Intent
+  const intentUrl = `intent:rawbt.print#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.text=${encoded};end`;
 
-    socket.onopen = () => {
-      const encoder = new TextEncoder();
-      socket.send(encoder.encode(ticket));
-      socket.close();
-    };
-
-    socket.onerror = (err) => {
-      console.error("❌ Error enviando a RawBT:", err);
-      alert("Error al enviar el ticket a la impresora Wi-Fi.");
-    };
-  } catch (err) {
-    console.error("Error general de impresión:", err);
-  }
+  // Redirigimos al Intent → Android abre RawBT automáticamente
+  window.location.href = intentUrl;
 }
