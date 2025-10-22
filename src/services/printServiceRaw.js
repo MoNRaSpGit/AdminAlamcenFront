@@ -1,5 +1,6 @@
-// src/services/printServiceRaw.jsx
+// src/services/printServiceRaw.js
 export async function printTestTicketRaw(items) {
+  // Armamos ticket ESC/POS real
   let ticket = "\x1B\x40"; // Reset
   ticket += "\x1B\x61\x01"; // Centrar
   ticket += "*** ALMACÉN PRO ***\n";
@@ -11,15 +12,15 @@ export async function printTestTicketRaw(items) {
   ticket += "-----------------------------\n";
   ticket += "\x1B\x61\x01"; // Centrar
   ticket += "¡Gracias por su compra!\n\n\n";
-  ticket += "\x1D\x56\x42\x00"; // Corte
+  ticket += "\x1D\x56\x42\x00"; // Corte parcial
 
-  // Convertir a Base64 real
+  // Codificar en Base64 real
   const bytes = new TextEncoder().encode(ticket);
-  const base64 = btoa(String.fromCharCode(...bytes));
+  const base64Data = btoa(String.fromCharCode(...bytes));
 
-  // RawBT esquema actualizado (recomendado)
-  const rawbtUrl = `rawbt://print?data=${base64}`;
+  // Intent en modo RAW (binario)
+  const intent = `intent:rawbt.print#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.mimeType=application/octet-stream;S.data=${base64Data};end`;
 
-  // Dispara la impresión
-  window.location.href = rawbtUrl;
+  // Dispara el Intent → abre RawBT
+  window.location.href = intent;
 }
